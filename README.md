@@ -1,6 +1,6 @@
 # OpenCV C++ 快速入门：配套代码
 
-这套代码与 `docs/OpenCV_Cpp_Quickstart_Guide.md` 配套。建议先阅读文档对应章节，再编译运行同编号示例，最后完成 `docs/学生练习任务.md`。
+这套代码与 `docs/OpenCV_Cpp_Quickstart_Guide.md` 配套。建议先阅读文档对应章节，再编译运行同编号示例，最后按照自学手册附录 D 完成 `src/` 中的练习。
 
 **`src/` 里现在是空壳文件**（只有目标、API 提示、TODO 和验收标准），代码由你自己写。
 每个示例的完整源码和逐段讲解在 `docs/动手学OpenCV_自学手册.md`，卡住时对照那一课。
@@ -38,8 +38,7 @@ opencv_cpp_quickstart/
 ├── README.md
 ├── docs/
 │   ├── OpenCV_Cpp_Quickstart_Guide.md   # 讲义
-│   ├── 动手学OpenCV_自学手册.md          # 完整源码 + 逐段讲解
-│   └── 学生练习任务.md                   # 练习清单
+│   └── 动手学OpenCV_自学手册.md          # 完整源码 + 逐段讲解
 ├── src/                                 # 你要写的代码（11 个空壳文件）
 │   ├── 00_first_program.cpp
 │   ├── 01_image_io.cpp

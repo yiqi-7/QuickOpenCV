@@ -111,9 +111,26 @@ if ($Run) {
     $exe = Join-Path $BuildDir "$Config\$Target.exe"
     if (-not (Test-Path -LiteralPath $exe)) { throw "executable not found: $exe" }
     Write-Host "[run] $exe" -ForegroundColor Cyan
-    Push-Location $Root      # programs write to output/ relative to the working dir
-    try { & $exe } finally { Pop-Location }
-    exit $LASTEXITCODE
+
+    # The source is compiled as UTF-8 (/utf-8); make the console decode stdout as UTF-8 too.
+    $previousConsoleEncoding = [Console]::OutputEncoding
+    $previousPipelineEncoding = $OutputEncoding
+    $utf8ConsoleEncoding = New-Object System.Text.UTF8Encoding($false)
+    try {
+        [Console]::OutputEncoding = $utf8ConsoleEncoding
+        $OutputEncoding = $utf8ConsoleEncoding
+        Push-Location $Root  # programs write to output/ relative to the working dir
+        try {
+            & $exe
+            $runCode = $LASTEXITCODE
+        } finally {
+            Pop-Location
+        }
+    } finally {
+        [Console]::OutputEncoding = $previousConsoleEncoding
+        $OutputEncoding = $previousPipelineEncoding
+    }
+    exit $runCode
 }
 
 Write-Host "[done] $Config binaries in build\$Config\" -ForegroundColor Green

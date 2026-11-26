@@ -1,0 +1,35 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "vs2019",
+            "displayName": "Visual Studio 2019 x64 (OpenCV 4.13.0)",
+            "description": "使用本机已装好的 MSVC 2019 与 E:/opencv 静态库",
+            "generator": "Visual Studio 16 2019",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "OpenCV_DIR": "E:/opencv/cmake/opencv4"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release",
+            "displayName": "Release",
+            "configurePreset": "vs2019",
+            "configuration": "Release"
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "configurePreset": "vs2019",
+            "configuration": "Debug"
+        }
+    ]
+}

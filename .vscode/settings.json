@@ -1,0 +1,16 @@
+{
+    "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src",
+        "E:/opencv/Release/include"
+    ],
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.encoding": "utf8",
+    "files.associations": {
+        "*.cpp": "cpp"
+    }
+}

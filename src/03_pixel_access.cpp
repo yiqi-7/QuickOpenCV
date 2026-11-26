@@ -68,7 +68,7 @@ static void processWithPtr(const cv::Mat& src, cv::Mat& dst)
     }
 }
 
-static void processIterator(const cv::Mat& src, cv::Mat& dst)
+static void processWithIterator(const cv::Mat& src, cv::Mat& dst)
 {
     dst.create(src.size(), src.type());
 
@@ -86,7 +86,34 @@ static void processIterator(const cv::Mat& src, cv::Mat& dst)
 
 int main()
 {
-    
+    std::filesystem::create_directories("output");
+    const cv::Mat src = makeInput();
+    cv::Mat dstAt, dstPtr, dstIterator, dstBuiltin;
+
+    // 执行任务并计时
+    const auto measure = [](const char* name, auto&& fn) {
+        const auto begin = std::chrono::steady_clock::now();
+        fn();
+        const auto end = std::chrono::steady_clock::now();
+        const double ms = std::chrono::duration<double, std::milli>(end - begin).count();
+
+        std::cout << name << "执行时间: " << ms << " ms " << std::endl; 
+    };
+
+    measure("at", [&] {processWithAt(src, dstAt); });
+    measure("ptr", [&] {processWithPtr(src, dstPtr); });
+    measure("iterator", [&] {processWithIterator(src, dstIterator); });
+    measure("convertTo", [&] { src.convertTo(dstBuiltin, -1, 1.2, 0.0); });
+
+    std::cout << "at == ptr:" << cv::norm(dstAt, dstPtr, cv::NORM_INF) << std::endl;
+
+    std::cout << "at == iterator:" << cv::norm(dstAt, dstIterator, cv::NORM_INF) << std::endl;
+
+    std::cout << "at == convertTo:" << cv::norm(dstAt, dstBuiltin, cv::NORM_INF) << std::endl;
+
+    cv::imwrite("output/03_pixel_ptr_result.png", dstPtr);
+    cv::imshow("Pixel processing result", dstPtr);
+    cv::waitKey(0);
     
     return 0;
 }

@@ -2,7 +2,7 @@
 
 > 这份手册面向"想尽快跑起来、并且看懂每行代码在干什么"的同学。
 > 每一课都是：**完整源码 → 逐段讲解 → 运行后该看到什么 → 易错点**。
-> 代码与 `src/` 完全一致，可以直接编译运行；也可以先自己敲一遍再对照。
+> 下面的代码是每课的**完整参考实现**，包含行内注释，可以直接编译运行；`src/` 中保留的是你要自己完成的练习文件。建议先自己敲一遍，再回来看参考实现。
 
 ---
 
@@ -91,24 +91,32 @@ cmake --build build --config Release --target 07_features2d_orb
 ### 1.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
 
 int main()
 {
+    // CV_VERSION 是 OpenCV 提供的编译期版本字符串宏。
     std::cout << "OpenCV version: " << CV_VERSION << '\n';
 
     // 创建一张 640x360、三通道 8 位图像，初始颜色为深蓝色（BGR）。
+    // Mat 参数顺序是 rows、cols、type、初始值；Scalar 按 BGR 排列。
     cv::Mat canvas(360, 640, CV_8UC3, cv::Scalar(80, 40, 20));
 
+    // org 是文字左下角坐标；后面的参数依次控制字体、大小、颜色和线宽。
     cv::putText(canvas, "Hello OpenCV", cv::Point(90, 180),
                 cv::FONT_HERSHEY_SIMPLEX, 1.5,
                 cv::Scalar(0, 255, 255), 3, cv::LINE_AA);
 
+    // imwrite 按扩展名选择编码器，返回 false 时表示路径或编码失败。
     if (!cv::imwrite("output/00_hello_opencv.png", canvas)) {
         std::cerr << "Failed to save output/00_hello_opencv.png\n";
         return 1;
@@ -119,7 +127,9 @@ int main()
               << ", channels: " << canvas.channels() << '\n';
 
     // 无桌面环境或远程终端中可注释下面两行，仍然可以完成保存测试。
+    // imshow 显示 Mat；必须配合 waitKey 处理窗口消息。
     cv::imshow("First OpenCV Program", canvas);
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -162,38 +172,53 @@ Size: 640 x 360, channels: 3
 ### 2.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 #include <string>
 
+// 给文件系统命名空间取短别名，减少后续代码长度。
 namespace fs = std::filesystem;
 
+// 单独封装造图逻辑，让 main 只负责流程控制。
 static cv::Mat makeDemoImage()
 {
+    // 创建 480 行、640 列的三通道 8 位图，并填充浅灰色。
     cv::Mat image(480, 640, CV_8UC3, cv::Scalar(235, 235, 235));
     cv::rectangle(image, cv::Rect(70, 80, 210, 260), cv::Scalar(40, 80, 220), 5);
     cv::circle(image, cv::Point(430, 190), 90, cv::Scalar(40, 180, 60), -1);
+    // line 的两个 Point 分别是起点和终点。
     cv::line(image, cv::Point(60, 410), cv::Point(580, 410),
              cv::Scalar(200, 70, 30), 8);
+    // 在生成图上写字，坐标仍然是文字左下角。
     cv::putText(image, "OpenCV image I/O", cv::Point(100, 455),
                 cv::FONT_HERSHEY_SIMPLEX, 0.9,
                 cv::Scalar(20, 20, 20), 2, cv::LINE_AA);
     return image;
 }
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
+    // imwrite 不会自动创建目录，因此先确保输出目录存在。
     fs::create_directories("output");
 
     // 参数 1 可指定图片路径；未提供时自动生成演示图片。
     cv::Mat image;
+        // argv[0] 是程序名，argv[1] 是用户传入的第一个参数。
     if (argc >= 2) {
+        // IMREAD_COLOR 强制以 BGR 三通道彩色模式读取。
         image = cv::imread(argv[1], cv::IMREAD_COLOR);
+            // 读取失败返回空 Mat；必须在后续访问前检查。
         if (image.empty()) {
             std::cerr << "Cannot read image: " << argv[1] << '\n';
             return 1;
@@ -203,12 +228,14 @@ int main(int argc, char** argv)
         cv::imwrite("output/01_generated_input.png", image);
     }
 
+    // cols/rows 是宽高，channels 是通道数，depth/type 描述像素格式。
     std::cout << "Width: " << image.cols << '\n'
               << "Height: " << image.rows << '\n'
               << "Channels: " << image.channels() << '\n'
               << "Depth: " << image.depth() << '\n'
               << "Type code: " << image.type() << '\n';
 
+    // 用 string 保存路径，便于传给 imwrite 和输出错误信息。
     const std::string outputPath = "output/01_image_copy.png";
     if (!cv::imwrite(outputPath, image)) {
         std::cerr << "Failed to write: " << outputPath << '\n';
@@ -217,6 +244,7 @@ int main(int argc, char** argv)
 
     cv::imshow("Image I/O - input", image);
     std::cout << "Press any key in the image window to exit.\n";
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -268,19 +296,26 @@ Type code: 16
 ### 3.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 
 int main()
 {
+    // 运行前创建输出目录，避免保存图片失败。
     std::filesystem::create_directories("output");
 
     // 创建连续存储的 480x640、CV_8UC3 图像。
+    // 这张原图连续存储，后面用 step 和 isContinuous 观察内存布局。
     cv::Mat image(480, 640, CV_8UC3, cv::Scalar(30, 30, 30));
     cv::rectangle(image, cv::Rect(0, 0, 640, 480), cv::Scalar(70, 70, 70), 2);
 
@@ -291,6 +326,7 @@ int main()
               << ", continuous=" << image.isContinuous() << '\n';
 
     // ROI: x=100, y=50, width=200, height=120。
+    // ROI 左上角为 (100,50)，大小为 200x120。
     const cv::Rect roiRect(100, 50, 200, 120);
     cv::Mat roi = image(roiRect);          // 浅拷贝：共享 image 的像素内存
     cv::Mat roiCopy = image(roiRect).clone(); // 深拷贝：独立像素内存
@@ -302,17 +338,22 @@ int main()
               << ", continuous=" << roi.isContinuous() << '\n';
 
     // 修改浅拷贝 ROI，会反映到原图。
+    // 共享 ROI 改为红色，原图对应区域也会同步变化。
     roi.setTo(cv::Scalar(0, 0, 255));
 
     // 修改深拷贝副本，不会改变原图。
+    // 深拷贝副本改为绿色，验证它和原图已经分离。
     roiCopy.setTo(cv::Scalar(0, 255, 0));
 
     cv::rectangle(image, roiRect, cv::Scalar(255, 255, 255), 2);
+    // 保存共享 ROI 修改后的原图。
     cv::imwrite("output/02_mat_roi_shared.png", image);
+    // 保存独立副本；它的尺寸仍然是 200x120。
     cv::imwrite("output/02_mat_roi_clone.png", roiCopy);
 
     cv::imshow("Original after ROI modification", image);
     cv::imshow("Independent clone", roiCopy);
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -362,42 +403,59 @@ ROI : step[0] = 1920（继承原图！不是 200*3=600）, continuous = 0
 ### 4.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
 
 #include <algorithm>
+// C++ 标准计时库：steady_clock 适合测量持续时间。
 #include <chrono>
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 
 static cv::Mat makeInput()
 {
+    // 创建 1280x720 的三通道噪声输入图。
     cv::Mat image(720, 1280, CV_8UC3);
+    // 用均匀随机数填充所有通道，范围是 [0,180)。
     cv::randu(image, cv::Scalar::all(0), cv::Scalar::all(180));
     return image;
 }
 
+// at 版本直观但每次访问都要做行列定位，Debug 还可能有断言。
 static void processWithAt(const cv::Mat& src, cv::Mat& dst)
 {
+    // 准备与源图尺寸和类型相同的目标；匹配时可复用已有内存。
     dst.create(src.size(), src.type());
     for (int y = 0; y < src.rows; ++y) {
         for (int x = 0; x < src.cols; ++x) {
+            // at 的参数顺序是 y、x；Vec3b 表示 B、G、R 三个 uchar。
             const cv::Vec3b pixel = src.at<cv::Vec3b>(y, x);
+            // 取目标像素的引用，直接写入目标图而不产生额外副本。
             cv::Vec3b& out = dst.at<cv::Vec3b>(y, x);
             for (int c = 0; c < 3; ++c) {
+                // 乘法后夹到 0~255；直接转 uchar 可能发生回绕。
                 out[c] = cv::saturate_cast<uchar>(pixel[c] * 1.2);
             }
         }
     }
 }
 
+// ptr 版本每行只定位一次，通常比逐像素 at 更快。
 static void processWithPtr(const cv::Mat& src, cv::Mat& dst)
 {
+    // 准备与源图尺寸和类型相同的目标；匹配时可复用已有内存。
     dst.create(src.size(), src.type());
     for (int y = 0; y < src.rows; ++y) {
+        // 得到当前行首地址；ptr 会按 step 正确处理非连续 ROI。
         const cv::Vec3b* srcRow = src.ptr<cv::Vec3b>(y);
+        // 得到目标行首地址，后面用 dstRow[x] 访问像素。
         cv::Vec3b* dstRow = dst.ptr<cv::Vec3b>(y);
         for (int x = 0; x < src.cols; ++x) {
             for (int c = 0; c < 3; ++c) {
@@ -407,9 +465,12 @@ static void processWithPtr(const cv::Mat& src, cv::Mat& dst)
     }
 }
 
+// 迭代器把 Vec3b 作为元素遍历，接口统一但抽象层次更高。
 static void processWithIterator(const cv::Mat& src, cv::Mat& dst)
 {
+    // 准备与源图尺寸和类型相同的目标；匹配时可复用已有内存。
     dst.create(src.size(), src.type());
+    // begin/end 的模板参数决定每次迭代得到一个三通道像素。
     auto in = src.begin<cv::Vec3b>();
     auto inEnd = src.end<cv::Vec3b>();
     auto out = dst.begin<cv::Vec3b>();
@@ -422,11 +483,14 @@ static void processWithIterator(const cv::Mat& src, cv::Mat& dst)
 
 int main()
 {
+    // 运行前创建输出目录，避免保存图片失败。
     std::filesystem::create_directories("output");
     const cv::Mat src = makeInput();
     cv::Mat dstAt, dstPtr, dstIterator, dstBuiltin;
 
+    // 通用 lambda 接收名称和可调用对象，统一测量四种实现。
     const auto measure = [](const char* name, auto&& fn) {
+        // steady_clock 不受系统时间校准影响，适合测耗时。
         const auto begin = std::chrono::steady_clock::now();
         fn();
         const auto end = std::chrono::steady_clock::now();
@@ -437,6 +501,7 @@ int main()
     measure("at", [&] { processWithAt(src, dstAt); });
     measure("ptr", [&] { processWithPtr(src, dstPtr); });
     measure("iterator", [&] { processWithIterator(src, dstIterator); });
+    // convertTo 在 OpenCV 内部遍历数据，通常能使用更充分的底层优化。
     measure("convertTo", [&] { src.convertTo(dstBuiltin, -1, 1.2, 0.0); });
 
     std::cout << "at == ptr: "
@@ -448,6 +513,7 @@ int main()
 
     cv::imwrite("output/03_pixel_ptr_result.png", dstPtr);
     cv::imshow("Pixel processing result", dstPtr);
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -493,18 +559,26 @@ at == convertTo: 0
 ### 5.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 
+// 给文件系统命名空间取短别名，减少后续代码长度。
 namespace fs = std::filesystem;
 
+// 单独封装造图逻辑，让 main 只负责流程控制。
 static cv::Mat makeDemoImage()
 {
+    // 创建 480 行、640 列的三通道 8 位图，并填充浅灰色。
     cv::Mat image(480, 640, CV_8UC3, cv::Scalar(235, 235, 235));
     cv::rectangle(image, cv::Rect(80, 70, 180, 250), cv::Scalar(30, 80, 220), -1);
     cv::circle(image, cv::Point(430, 170), 85, cv::Scalar(40, 180, 70), -1);
@@ -516,10 +590,13 @@ static cv::Mat makeDemoImage()
     return image;
 }
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
+    // imwrite 不会自动创建目录，因此先确保输出目录存在。
     fs::create_directories("output");
 
+    // 有参数读外部图片；没有参数就使用人工生成的演示图。
     cv::Mat src = (argc >= 2)
         ? cv::imread(argv[1], cv::IMREAD_COLOR)
         : makeDemoImage();
@@ -530,14 +607,21 @@ int main(int argc, char** argv)
     }
 
     cv::Mat gray, gaussian, median, binary, edges, morphology;
+    // 先转灰度，因为后续很多传统算子要求单通道输入。
     cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+    // 高斯平滑抑制噪声；核尺寸必须是正奇数。
     cv::GaussianBlur(gray, gaussian, cv::Size(5, 5), 1.2);
+    // 中值滤波对椒盐噪声尤其有效，核大小也必须是奇数。
     cv::medianBlur(gray, median, 5);
+    // 固定阈值：大于 127 的像素设为 255，否则设为 0。
     cv::threshold(gray, binary, 127, 255, cv::THRESH_BINARY);
+    // 在平滑后的灰度图上做边缘检测，降低噪声造成的假边缘。
     cv::Canny(gaussian, edges, 50, 150);
 
+    // 创建 3x3 矩形结构元素，供形态学操作使用。
     const cv::Mat kernel = cv::getStructuringElement(
         cv::MORPH_RECT, cv::Size(3, 3));
+    // 开运算等于先腐蚀后膨胀，用于去掉小白色噪点。
     cv::morphologyEx(binary, morphology, cv::MORPH_OPEN, kernel);
 
     cv::imwrite("output/04_source.png", src);
@@ -552,6 +636,7 @@ int main(int argc, char** argv)
     cv::imshow("Gray", gray);
     cv::imshow("Gaussian", gaussian);
     cv::imshow("Canny", edges);
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -595,20 +680,30 @@ int main(int argc, char** argv)
 ### 6.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 视频输入输出模块：提供 VideoCapture。
 #include <opencv2/videoio.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 #include <string>
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
+    // 用户可以传入摄像头编号；缺省使用设备 0。
     const int cameraIndex = (argc >= 2) ? std::stoi(argv[1]) : 0;
+    // 构造 VideoCapture 并尝试打开指定摄像头。
     cv::VideoCapture capture(cameraIndex);
+    // 必须检查设备是否真正打开，否则 read 只能得到空帧。
     if (!capture.isOpened()) {
         std::cerr << "Cannot open camera index " << cameraIndex << '\n';
         return 1;
@@ -617,9 +712,12 @@ int main(int argc, char** argv)
     std::cout << "Camera opened. Press G to toggle grayscale, S to save, ESC to quit.\n";
     bool grayscale = false;
     cv::Mat frame, output;
+    // 运行前创建输出目录，避免保存图片失败。
     std::filesystem::create_directories("output");
 
+    // 实时循环持续读帧，直到读帧失败或用户按 ESC。
     while (true) {
+        // read 写入下一帧；失败或空帧时立即停止处理。
         if (!capture.read(frame) || frame.empty()) {
             std::cerr << "Failed to read frame.\n";
             break;
@@ -628,12 +726,14 @@ int main(int argc, char** argv)
         if (grayscale) {
             cv::cvtColor(frame, output, cv::COLOR_BGR2GRAY);
         } else {
+            // Mat 赋值是浅拷贝，只复制头并共享当前帧像素。
             output = frame;
         }
 
         cv::imshow("Camera input", frame);
         cv::imshow("Camera output", output);
 
+        // 1ms 等待让窗口刷新，同时取得本帧键盘输入。
         const int key = cv::waitKey(1) & 0xFF;
         if (key == 27) {
             break;
@@ -651,6 +751,7 @@ int main(int argc, char** argv)
         }
     }
 
+    // 主动释放摄像头句柄，否则设备可能继续被占用。
     capture.release();
     cv::destroyAllWindows();
     return 0;
@@ -694,30 +795,39 @@ int main(int argc, char** argv)
 ### 7.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 视频输入输出模块：提供 VideoCapture。
 #include <opencv2/videoio.hpp>
+// 视频分析模块：提供背景建模等接口。
 #include <opencv2/video.hpp>
+// 背景分割模块：提供 MOG2 工厂函数。
 #include <opencv2/video/background_segm.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
 #include <string>
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
     // 默认使用摄像头；也可以传入视频文件路径。
     cv::VideoCapture capture;
+        // argv[0] 是程序名，argv[1] 是用户传入的第一个参数。
     if (argc >= 2) {
         capture.open(argv[1]);
     } else {
         capture.open(0);
     }
 
+    // 必须检查设备是否真正打开，否则 read 只能得到空帧。
     if (!capture.isOpened()) {
         std::cerr << "Cannot open video source.\n";
         return 1;
     }
 
+    // cv::Ptr 是 OpenCV 的引用计数智能指针，管理算法对象生命周期。
     cv::Ptr<cv::BackgroundSubtractor> mog2 =
         cv::createBackgroundSubtractorMOG2();
 
@@ -729,6 +839,7 @@ int main(int argc, char** argv)
             break;
         }
 
+        // 更新背景模型，并生成单通道前景掩码。
         mog2->apply(frame, foreground);
         cv::imshow("Input video", frame);
         cv::imshow("MOG2 foreground mask", foreground);
@@ -738,6 +849,7 @@ int main(int argc, char** argv)
         }
     }
 
+    // 主动释放摄像头句柄，否则设备可能继续被占用。
     capture.release();
     cv::destroyAllWindows();
     return 0;
@@ -780,12 +892,18 @@ MOG2 假设"每个像素的颜色长期看服从若干个高斯分布"。一开�
 ### 8.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// 二维特征模块：提供 ORB、BFMatcher 和 drawMatches。
 #include <opencv2/features2d.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 #include <vector>
@@ -793,6 +911,7 @@ MOG2 假设"每个像素的颜色长期看服从若干个高斯分布"。一开�
 static cv::Mat makeTextureImage()
 {
     cv::Mat image(480, 640, CV_8UC1, cv::Scalar(235));
+    // 固定随机种子，保证每次生成相同纹理，便于复现实验。
     cv::RNG rng(12345);
     for (int i = 0; i < 180; ++i) {
         const cv::Point center(rng.uniform(20, 620), rng.uniform(20, 460));
@@ -811,16 +930,20 @@ static cv::Mat makeTextureImage()
 
 int main()
 {
+    // 运行前创建输出目录，避免保存图片失败。
     std::filesystem::create_directories("output");
     cv::Mat image1 = makeTextureImage();
     cv::Mat image2;
     const cv::Mat affine = (cv::Mat_<double>(2, 3) << 1, 0, 18, 0, 1, 12);
+    // 根据仿射矩阵生成第二张平移后的图像。
     cv::warpAffine(image1, image2, affine, image1.size());
 
+    // 创建 ORB；1000 是最多保留的关键点数量。
     const cv::Ptr<cv::ORB> orb = cv::ORB::create(1000);
     std::vector<cv::KeyPoint> keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
 
+    // 一次完成关键点检测和二进制描述子计算；noArray 表示不限制区域。
     orb->detectAndCompute(image1, cv::noArray(), keypoints1, descriptors1);
     orb->detectAndCompute(image2, cv::noArray(), keypoints2, descriptors2);
 
@@ -833,16 +956,20 @@ int main()
     }
 
     // ORB 的描述子是二进制描述子，通常使用 Hamming 距离。
+    // ORB 描述子是二进制串，所以匹配距离使用汉明距离；true 开启互相验证。
     cv::BFMatcher matcher(cv::NORM_HAMMING, true);
     std::vector<cv::DMatch> matches;
+    // 为每个查询描述子寻找距离最近的训练描述子。
     matcher.match(descriptors1, descriptors2, matches);
 
     cv::Mat matchImage;
+    // 把两图并排拼接，并绘制匹配关键点之间的连线。
     cv::drawMatches(image1, keypoints1, image2, keypoints2,
                     matches, matchImage);
 
     cv::imwrite("output/07_orb_matches.png", matchImage);
     cv::imshow("ORB feature matching", matchImage);
+    // 0 表示无限等待按键；实时程序则应使用很小的毫秒数。
     cv::waitKey(0);
     return 0;
 }
@@ -895,7 +1022,9 @@ Keypoints image 2: 995
 ### 9.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 相机标定与三维重建模块：提供 projectPoints 和 solvePnP。
 #include <opencv2/calib3d.hpp>
 
 #include <iostream>
@@ -904,13 +1033,16 @@ Keypoints image 2: 995
 int main()
 {
     // 相机内参矩阵：fx、fy 为焦距（像素单位），cx、cy 为主点。
+    // 相机内参 K：fx/fy 是像素焦距，cx/cy 是主点坐标。
     const cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) <<
         800.0, 0.0, 320.0,
         0.0, 800.0, 240.0,
         0.0, 0.0, 1.0);
+    // 五个畸变系数全零，表示本例假设镜头没有畸变。
     const cv::Mat distCoeffs = cv::Mat::zeros(5, 1, CV_64F);
 
     // 构造立方体的 8 个三维角点，单位可理解为任意一致的长度单位。
+    // 立方体八个角点的三维坐标，单位可以是任意一致的长度单位。
     const std::vector<cv::Point3f> objectPoints = {
         {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0},
         {0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}
@@ -920,17 +1052,20 @@ int main()
     const cv::Mat trueRvec = (cv::Mat_<double>(3, 1) << 0.1, -0.15, 0.05);
     const cv::Mat trueTvec = (cv::Mat_<double>(3, 1) << 0.0, 0.0, 6.0);
     std::vector<cv::Point2f> imagePoints;
+    // 先用已知真值把 3D 点投影成 2D 点，构造无噪声测试数据。
     cv::projectPoints(objectPoints, trueRvec, trueTvec,
                       cameraMatrix, distCoeffs, imagePoints);
 
     // solvePnP 根据 3D-2D 对应关系估计物体相对于相机的位姿。
     cv::Mat estimatedRvec, estimatedTvec;
+    // 再根据 3D-2D 对应点、内参和畸变反求位姿。
     const bool success = cv::solvePnP(
         objectPoints, imagePoints,
         cameraMatrix, distCoeffs,
         estimatedRvec, estimatedTvec,
         false, cv::SOLVEPNP_ITERATIVE);
 
+    // solvePnP 返回 false 时不能使用输出的旋转和平移结果。
     if (!success) {
         std::cerr << "solvePnP failed.\n";
         return 1;
@@ -1000,14 +1135,18 @@ Estimated translation vector:
 ### 10.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// 深度神经网络模块：提供 ONNX 加载、blob 和前向推理。
 #include <opencv2/dnn.hpp>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
     if (argc < 3) {
@@ -1016,10 +1155,13 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    // 保存模型和图片路径，后续错误信息可以直接打印它们。
     const std::string modelPath = argv[1];
     const std::string imagePath = argv[2];
 
+    // DNN 输入通常从彩色图片开始，后面再统一做 blob 预处理。
     cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
+            // 读取失败返回空 Mat；必须在后续访问前检查。
     if (image.empty()) {
         std::cerr << "Cannot read image: " << imagePath << '\n';
         return 1;
@@ -1027,6 +1169,7 @@ int main(int argc, char** argv)
 
     cv::dnn::Net net;
     try {
+        // 读取 ONNX 计算图和权重；格式问题会抛出 cv::Exception。
         net = cv::dnn::readNetFromONNX(modelPath);
     } catch (const cv::Exception& e) {
         std::cerr << "Failed to load ONNX model: " << e.what() << '\n';
@@ -1040,16 +1183,19 @@ int main(int argc, char** argv)
 
     // 示例使用常见的 640x640、缩放到 [0,1]、交换 B/R 通道配置。
     // 这只是演示参数；必须根据具体模型的预处理定义修改。
+    // 把 HxWxC 图片转换成网络常用的 NCHW 四维输入张量。
     cv::Mat blob = cv::dnn::blobFromImage(
         image, 1.0 / 255.0, cv::Size(640, 640),
         cv::Scalar(), true, false);
 
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    // 将预处理后的 blob 设置为网络当前输入。
     net.setInput(blob);
 
     try {
         std::vector<cv::Mat> outputs;
+        // 执行前向推理，并收集所有未连接输出层的结果。
         net.forward(outputs, net.getUnconnectedOutLayersNames());
         std::cout << "Output tensors: " << outputs.size() << '\n';
         for (std::size_t i = 0; i < outputs.size(); ++i) {
@@ -1123,38 +1269,52 @@ Shape: 1x84x8400
 ### 11.1 完整源码
 
 ```cpp
+// OpenCV 核心模块：Mat、Scalar、Point、Vec、RNG 等基础类型。
 #include <opencv2/core.hpp>
+// 视频输入输出模块：提供 VideoCapture。
 #include <opencv2/videoio.hpp>
+// 图像处理模块：绘图、颜色转换、滤波、阈值、边缘等 API。
 #include <opencv2/imgproc.hpp>
+// 图像编解码模块：提供 imread 和 imwrite。
 #include <opencv2/imgcodecs.hpp>
+// HighGUI 模块：提供 imshow、waitKey 和窗口管理。
 #include <opencv2/highgui.hpp>
 
+// C++17 文件系统：用于创建 output 目录。
 #include <filesystem>
 #include <iostream>
 
+// argc/argv 让程序可以从命令行接收输入图片路径。
 int main(int argc, char** argv)
 {
+    // 用户可以传入摄像头编号；缺省使用设备 0。
     const int cameraIndex = (argc >= 2) ? std::stoi(argv[1]) : 0;
+    // 打开摄像头，后续 read 会不断取得新帧。
     cv::VideoCapture camera(cameraIndex);
     if (!camera.isOpened()) {
         std::cerr << "Cannot open camera. Try another camera index.\n";
         return 1;
     }
 
+    // 运行前创建输出目录，避免保存图片失败。
     std::filesystem::create_directories("output");
+    // 当前模式：1 原图、2 灰度、3 高斯平滑、4 Canny。
     int mode = 1;
     cv::Mat frame, output, gray, blurred;
 
     std::cout << "1: Original | 2: Gray | 3: Gaussian | 4: Canny\n"
                  "S: Save current result | ESC: Quit\n";
 
+    // 只要读帧成功就继续处理，设备断开时循环自动结束。
     while (camera.read(frame)) {
         if (frame.empty()) {
             continue;
         }
 
+        // 根据用户选择执行不同的图像处理分支。
         switch (mode) {
         case 1:
+            // Mat 赋值是浅拷贝，只复制头并共享当前帧像素。
             output = frame;
             break;
         case 2:
@@ -1164,11 +1324,15 @@ int main(int argc, char** argv)
             cv::GaussianBlur(frame, output, cv::Size(5, 5), 1.0);
             break;
         case 4:
+            // Canny 需要单通道输入，因此先把 BGR 转成灰度。
             cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+            // 先平滑再检测边缘，可以减少噪声造成的边缘。
             cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 1.0);
+            // 低/高阈值为 50/150，结果 output 是单通道边缘图。
             cv::Canny(blurred, output, 50, 150);
             break;
         default:
+            // Mat 赋值是浅拷贝，只复制头并共享当前帧像素。
             output = frame;
             break;
         }
@@ -1176,13 +1340,16 @@ int main(int argc, char** argv)
         cv::imshow("Camera", frame);
         cv::imshow("Processing result", output);
 
+        // 1ms 等待让窗口刷新，同时取得本帧键盘输入。
         const int key = cv::waitKey(1) & 0xFF;
         if (key == 27) {
             break;
         }
         if (key >= '1' && key <= '4') {
+            // 字符数字减去字符 0，得到对应的整数模式。
             mode = key - '0';
         } else if (key == 's' || key == 'S') {
+            // 把模式号放入文件名，防止不同模式互相覆盖。
             const std::string filename = "output/10_mode_" +
                 std::to_string(mode) + ".png";
             if (!cv::imwrite(filename, output)) {
@@ -1193,6 +1360,7 @@ int main(int argc, char** argv)
         }
     }
 
+    // 退出前释放摄像头句柄。
     camera.release();
     cv::destroyAllWindows();
     return 0;

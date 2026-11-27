@@ -29,8 +29,66 @@
 
 int main(int argc, char** argv)
 {
-    // TODO: 按上面的 1~5 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
-    (void)argc;
-    (void)argv;
+    // 选摄像头
+    const int cameraIndex = (argc >= 2) ? std::stoi(argv[1]) : 0;
+    cv::VideoCapture capture(cameraIndex);
+
+    // 检测设备是否打卡
+    if (!capture.isOpened()) {
+        std::cerr << "无法打开摄像头，索引为: " << cameraIndex << std::endl;
+        return 1;
+    }
+
+    std::cout << "Camera opened. Press G to toggle grayscale, S to save, ESC to quit."
+              << std::endl;
+
+    bool garyscale = false; 
+    cv::Mat frame, output;
+
+    // 创建输出目录 
+    std::filesystem::create_directories("output");
+
+    while (true) {
+        if (!capture.read(frame) || frame.empty()) {
+            std::cerr << "捕获帧失败" << std::endl;
+            break;
+        }
+
+        if (garyscale) {
+            cv::cvtColor(frame, output, cv::COLOR_BGR2GRAY);
+        }
+        else {
+            // Mat浅拷贝
+            output = frame; 
+        }
+
+        // Windows HighGUI 对 UTF-8 中文窗口标题的支持不稳定，使用 ASCII 标题避免乱码。
+        cv::imshow("Camera Input", frame);
+        cv::imshow("Camera Output", output);
+
+        // 等待窗口刷新和键盘输入 
+        const int key = cv::waitKey(1) & 0xFF;
+        if (key == 27) { // ESC
+            break; 
+        }
+        else if (key == 'g' || key == 'G') {
+            garyscale = !garyscale;
+        }
+        else if (key == 's' || key == 'S') {
+            const std::string path = garyscale ? "output/05_camera_gray.png" : "output/05_camera_color.png";
+
+            if (cv::imwrite(path, output)) {
+                std::cout << "保存成功: " << path << std::endl;
+            } 
+            else {
+                std::cerr << "保存失败: " << path << std::endl;
+            }
+        }
+    }
+
+    // 释放资源 
+    capture.release();
+    cv::destroyAllWindows();
+
     return 0;
 }

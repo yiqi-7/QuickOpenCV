@@ -25,10 +25,54 @@
 #include <filesystem>
 #include <iostream>
 
+namespace fs = std::filesystem;
+
+static cv::Mat makeDemoImage()
+{  
+    cv::Mat image(480, 640, CV_8UC3, cv::Scalar(235, 235, 235));
+    cv::rectangle(image, cv::Rect(80, 70, 180, 250), cv::Scalar(30, 80, 220), 01);
+    cv::circle(image, cv::Point(430, 170), 85, cv::Scalar(40, 180, 70), -1);
+    cv::line(image, cv::Point(50, 390), cv::Point(590, 390), cv::Scalar(200, 60, 20), 12);
+    cv::putText(image, "Image Processing", cv::Point(120, 455), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(20, 20, 20), 2, cv::LINE_AA);
+
+    return image;
+}
+
 int main(int argc, char** argv)
 {
-    // TODO: 按上面的 1~8 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
-    (void)argc;
-    (void)argv;
+    fs::create_directories("output");
+
+    cv::Mat src = (argc >= 2) ? cv::imread(argv[1], cv::IMREAD_COLOR) : makeDemoImage(); 
+
+    if (src.empty()) {
+        std::cerr << "输入图像为空， 检测路径" << std::endl;
+        return 1;
+    }
+
+    cv::Mat gray, gaussian, median, binary, edges, morphology;
+    cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY); // 彩色转化为灰度图
+    cv::GaussianBlur(gray, gaussian, cv::Size(5, 5), 1.2); // 亮度1.2，且使用高斯滤波
+    cv::medianBlur(gray, median, 5); // 核大小为5
+    cv::threshold(gray, binary, 127, 255, cv::THRESH_BINARY);  // 固定阈值二值化
+    cv::Canny(gaussian, edges, 50, 150);
+
+    const cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    // 做开运算
+    cv::morphologyEx(binary, morphology, cv::MORPH_OPEN, kernel); 
+    
+    cv::imwrite("output/04_source.png", src);
+    cv::imwrite("output/04_gray.png", gray);
+    cv::imwrite("output/04_gaussian.png", gaussian);
+    cv::imwrite("output/04_median.png", median);
+    cv::imwrite("output/04_binary.png", binary);
+    cv::imwrite("output/04_canny.png", edges);
+    cv::imwrite("output/04_morphology_open.png", morphology);
+    
+    cv::imshow("Source", src);
+    cv::imshow("Gray", gray);
+    cv::imshow("Gaussion", gaussian);
+    cv::imshow("Canny", edges);
+    cv::waitKey(0);
+    
     return 0;
 }

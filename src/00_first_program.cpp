@@ -20,6 +20,7 @@
 //   output/00_hello_opencv.png 生成且能看到文字
 //   窗口弹出，按键后进程返回 0
 // ============================================================================
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -27,28 +28,10 @@
 
 #include <iostream>
 
-int main()
+int main(int argc, char** argv)
 {
     // TODO: 按上面的 1~6 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
-    std::cout << "Opencv version:" << CV_VERSION << '\n';
-    //  创建图片        BGR
-    cv::Mat canvas(360, 640, CV_8UC3, cv::Scalar(80, 40, 20));
-    //  在图片上输出文字（FONT_HERSHEY_SIMPLEX） 坐标为文字的左下角像素坐标
-    cv::putText(canvas, "Hello OpenCV", cv::Point(90, 180),
-                cv::FONT_HERSHEY_SIMPLEX, 1.5, 
-            cv::Scalar(0, 255, 255), 3, cv::LINE_AA);
-
-    if (!cv::imwrite("output/00_hello_openve.png", canvas)) {
-        std::cerr << "Failed to save png" << std::endl;
-        return 1;
-    }
-    
-    std::cout << "Image saved !" << std::endl;
-    std::cout << "Size:"  << canvas.cols << " x " << canvas.rows 
-              << ", channels:" << canvas.channels() << std::endl;
-
-    cv::imshow("Fisrt OpenCV Program", canvas);
-    cv::waitKey(0);
-
+    (void)argc;
+    (void)argv;
     return 0;
 }

@@ -31,68 +31,8 @@
 
 int main(int argc, char** argv)
 {
-    const int cameraIndex = (argc >= 2) ? std::stoi(argv[1]) : 0;
-    cv::VideoCapture camera(cameraIndex);
-    if (!camera.isOpened()) {
-        std::cerr << "无法打开摄像头" << std::endl;
-        return 1;
-    }
-
-    std::filesystem::create_directories("output");
-    int mode = 1;
-    cv::Mat frame, output, gray, blurred;
-
-    std::cout << "1: Original | 2: Gray | 3: Gaussian | 4: Canny" << std::endl << "S: Save Current result | ESC: Quit" << std::endl; 
-
-    while (camera.read(frame)) {
-        if (frame.empty()) continue;
-
-        switch (mode)
-        {
-        case 1:
-            output = frame;
-            break;
-        case 2: // 转灰度
-            cv::cvtColor(frame, output, cv::COLOR_BGR2GRAY);
-            break;
-        case 3: // 高斯滤波
-            cv::GaussianBlur(frame, output, cv::Size(5, 5), 1.0);
-            break;
-        case 4:
-            // Canny 只接受单通道：先灰度，再平滑，最后检测边缘
-            cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-            cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 1.0);
-            // 低/高阈值为 50/150
-            cv::Canny(blurred, output, 50, 150);
-            break;
-
-        default:
-            output = frame;
-            break;
-        }
-
-        cv::imshow("Camera", frame);
-        cv::imshow("Processing result", output);
-
-        const int key = cv::waitKey(1) & 0xFF;
-        if (key == 27) break;
-        if (key >= '1' && key <= '4') {
-            mode = key - '0';
-        }
-        else if (key == 's' || key == 'S') {
-            const std::string filename = "output/10_mode_" + std::to_string(mode) + ".png";
-            if(!cv::imwrite(filename, output)) {
-                std::cerr << "保存失败: " << filename << std::endl;
-            }
-            else {
-                std::cout << "保存成功: " << filename << std::endl;
-            }
-        }
-    }
-
-    // 释放摄像头和全部窗口
-    camera.release();
-    cv::destroyAllWindows();
-
+    // TODO: 按上面的 1~6 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
+    (void)argc;
+    (void)argv;
     return 0;
 }

@@ -16,6 +16,7 @@
 //   clone 出的图是独立绿色块，原图不受影响
 //   能解释 ROI 的 step[0] 为什么等于原图 step[0] 而不是 200*3
 // ============================================================================
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -24,41 +25,10 @@
 #include <filesystem>
 #include <iostream>
 
-int main()
+int main(int argc, char** argv)
 {
-    std::filesystem::create_directories("output");
-    cv::Mat image(480, 640, CV_8UC3, cv::Scalar(30, 30, 30));
-    cv::rectangle(image, cv::Rect(0, 0, 640, 480), cv::Scalar(70, 70, 70), 2);
-
-    std::cout << "Original rows = " << image.rows 
-    << ", cols=" << image.cols 
-    << ", elemSize=" << image.elemSize() 
-    << ", step[0]=" << image.step[0] 
-    << ", continuous=" << image.isContinuous() << std::endl; 
-
-    const cv::Rect roiRect(100, 50, 200, 100);
-    
-    cv::Mat roi = image(roiRect); // 浅拷贝
-    cv::Mat roiCopy = image(roiRect).clone(); // 深拷贝
-
-    std::cout << "Original rows = " << roi.rows 
-    << ", cols=" << roi.cols 
-    << ", elemSize=" << roi.elemSize() 
-    << ", step[0]=" << roi.step[0] 
-    << ", continuous=" << roi.isContinuous() << std::endl; 
-
-    // 浅拷贝影响原来的
-    roi.setTo(cv::Scalar(0,0,255));
-    // 深拷贝不影响
-    roiCopy.setTo(cv::Scalar(0,255,0));
-
-    cv::rectangle(image, roiRect, cv::Scalar(255, 255, 255), 2);
-    cv::imwrite("output/02_mat_roi_shared.png", image);
-    cv::imwrite("output/02_mat_roi_clone.png", roiCopy);
-
-    cv::imshow("原始图片", image);
-    cv::imshow("深拷贝图片", roiCopy);
-    cv::waitKey(0);
-
+    // TODO: 按上面的 1~7 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
+    (void)argc;
+    (void)argv;
     return 0;
 }

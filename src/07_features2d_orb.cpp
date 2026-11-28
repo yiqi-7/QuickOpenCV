@@ -28,58 +28,6 @@
 
 int main()
 {
-    // 1.创建输出目录 
-    std::filesystem::create_directories("output");
-
-    //  2.输入转灰度
-    cv::Mat img1 = cv::imread("assets/box.png", cv::IMREAD_GRAYSCALE);
-    cv::Mat img2 = cv::imread("assets/box_in_scene.png", cv::IMREAD_GRAYSCALE);
-    if (img1.empty() || img2.empty()) {
-        std::cerr << "图片打开错误" << std::endl;
-        return 1; 
-    }
-
-    // 3.关键点 + 描述子
-
-    // 创建ORB, 保留最大关键点数是1000, 不一定是1000个关键点
-    const cv::Ptr<cv::ORB> orb = cv::ORB::create(1000);
-    std::vector<cv::KeyPoint> keypoints1, keypoints2;
-    cv::Mat descriptors1, descriptors2;
-
-    // 一次完成关键点检测和二进制描述子计算: noArray 表示不限制区域 
-    orb->detectAndCompute(img1, cv::noArray(), keypoints1, descriptors1);
-    orb->detectAndCompute(img2, cv::noArray(), keypoints2, descriptors2);
-
-    // 4.打印点数 + 判空: 低纹理可能0个点
-    std::cout << "Keypoints image 1: " << keypoints1.size() << std::endl;
-    std::cout << "Keypoints image 2: " << keypoints2.size() << std::endl;
-
-    if (descriptors1.empty() || descriptors2.empty()) {
-        std::cerr << "无描述子" << std::endl; 
-        return 1;
-    }
-
-    // 5.ORB的描述子是二进制描述子，用汉明码（二进制必须用）
-    // 第二个参数代表采用双向验证
-    cv::BFMatcher matcher(cv::NORM_HAMMING, true);
-    std::vector<cv::DMatch> matches; 
-    // 为每个查询描述子找最近的训练描述子
-    //            查询描述子     训练描述子    输出匹配结果
-    // 每个DMatch中记录第一张图中描述子索引、第二张图中描述子索引、两个描述子之间的距离
-    matcher.match(descriptors1, descriptors2, matches);
-    std::cout << "Matches: " << matches.size() << std::endl;
-
-    // 6.匹配可视化
-    cv::Mat matchImage;
-    //两图并排拼接，并绘制匹配关键点之间的连线
-    cv::drawMatches(img1, keypoints1, img2, keypoints2, matches, matchImage);
-
-    if (!cv::imwrite("output/07_orb_matches.png", matchImage)) {
-        std::cerr << "图片保存失败" << std::endl;
-        return -1;
-    }
-    cv::imshow("ORB feature matching", matchImage);
-
-    cv::waitKey(0);
+    // TODO: 按上面的 1~7 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
     return 0;
 }

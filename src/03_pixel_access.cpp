@@ -15,6 +15,7 @@
 //   能解释 convertTo 为什么通常最快
 //   能解释 at() 在 Debug 有断言、Release 没有
 // ============================================================================
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -25,95 +26,10 @@
 #include <filesystem>
 #include <iostream>
 
-// 生成图片
-static cv::Mat makeInput()
+int main(int argc, char** argv)
 {
-    cv::Mat image(720, 1280, CV_8UC3);
-    cv::randu(image, cv::Scalar::all(0), cv::Scalar::all(180));
-    return image;
-}
-
-/*
-    下面执行三种访问 亮度乘上1.2
-*/
-
-// At访问 
-static void processWithAt(const cv::Mat& src, cv::Mat& dst)
-{
-    dst.create(src.size(), src.type());
-
-    for (int y = 0; y < src.rows; ++y) {
-        for (int x = 0; x < src.cols; ++x) {
-            const cv::Vec3b pixel = src.at<cv::Vec3b>(y, x);
-            cv::Vec3b& out = dst.at<cv::Vec3b>(y, x);
-            for (int c = 0; c < 3; ++c) {
-                out[c] = cv::saturate_cast<uchar>(pixel[c] * 1.2);
-            }
-        }
-    }
-}
-
-static void processWithPtr(const cv::Mat& src, cv::Mat& dst)
-{
-    dst.create(src.size(), src.type());
-
-    for (int y = 0; y < src.rows; ++y) {
-        const cv::Vec3b* srcRow = src.ptr<cv::Vec3b>(y);
-        cv::Vec3b* dstRow = dst.ptr<cv::Vec3b>(y);
-        for (int x = 0; x < src.cols; ++x) {
-            for (int c = 0; c < 3; ++c) {
-                dstRow[x][c] = cv::saturate_cast<uchar>(srcRow[x][c]*1.2);
-            }
-        }
-    }
-}
-
-static void processWithIterator(const cv::Mat& src, cv::Mat& dst)
-{
-    dst.create(src.size(), src.type());
-
-    auto in = src.begin<cv::Vec3b>();
-    auto inEnd = src.end<cv::Vec3b>();
-    auto out = dst.begin<cv::Vec3b>();
-    auto outEnd = dst.end<cv::Vec3b>();
-
-    for (; in != inEnd; ++in, ++out) {
-        for (int c = 0; c < 3; ++c) {
-            (*out)[c] = cv::saturate_cast<uchar>((*in)[c] * 1.2);
-        }
-    }
-}
-
-int main()
-{
-    std::filesystem::create_directories("output");
-    const cv::Mat src = makeInput();
-    cv::Mat dstAt, dstPtr, dstIterator, dstBuiltin;
-
-    // 执行任务并计时
-    const auto measure = [](const char* name, auto&& fn) {
-        const auto begin = std::chrono::steady_clock::now();
-        fn();
-        const auto end = std::chrono::steady_clock::now();
-        const double ms = std::chrono::duration<double, std::milli>(end - begin).count();
-
-        std::cout << name << "执行时间: " << ms << " ms " << std::endl; 
-    };
-
-    measure("at", [&] {processWithAt(src, dstAt); });
-    measure("ptr", [&] {processWithPtr(src, dstPtr); });
-    measure("iterator", [&] {processWithIterator(src, dstIterator); });
-    measure("convertTo", [&] { src.convertTo(dstBuiltin, -1, 1.2, 0.0); });
-
-    std::cout << "at == ptr:" << cv::norm(dstAt, dstPtr, cv::NORM_INF) << std::endl;
-
-    std::cout << "at == iterator:" << cv::norm(dstAt, dstIterator, cv::NORM_INF) << std::endl;
-
-    std::cout << "at == convertTo:" << cv::norm(dstAt, dstBuiltin, cv::NORM_INF) << std::endl;
-
-    cv::imwrite("output/03_pixel_ptr_result.png", dstPtr);
-    cv::imshow("Pixel processing result", dstPtr);
-    cv::waitKey(0);
-    
+    // TODO: 按上面的 1~6 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
+    (void)argc;
+    (void)argv;
     return 0;
 }

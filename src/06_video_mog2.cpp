@@ -24,47 +24,8 @@
 
 int main(int argc, char** argv)
 {
-    cv::VideoCapture capture;
-    if (argc >= 2) {
-        capture.open(argv[1]);
-    }
-    else {
-        capture.open(0);
-    }
-
-    if (!capture.isOpened()) {
-        std::cerr << u8"打开失败" << std::endl; 
-        return 1;
-    }
-
-    // 使用两种前景掩码算法
-    cv::Ptr<cv::BackgroundSubtractorMOG2> mog2 = 
-    // cv::createBackgroundSubtractorKNN();
-    cv::createBackgroundSubtractorMOG2();
-
-    mog2->setHistory(500); // 学些帧数 
-    mog2->setVarThreshold(16); // 判定阈值
-    mog2->setDetectShadows(false); // 关阴影
-
-    cv::Mat frame, foreground;
-    std::cout << u8"MOG2 背景提取, 按ESC退出" << std::endl; 
-
-    while (capture.read(frame)) {
-        if (frame.empty()) break;
-
-        // 更新背景模型 生成单通道前景掩码 
-        mog2->apply(frame, foreground);
-        cv::imshow("Input video", frame);
-        cv::imshow("MOG2 foreground mask", foreground);
-        // cv::imshow("KNN foreground mask", foreground);
-
-        if ((cv::waitKey(1) & 0xFF) == 27) break;
-    }
-
-    // 释放资源
-    capture.release();
-    cv::destroyAllWindows(); // 关闭所有窗口
-    
+    // TODO: 按上面的 1~5 步自己实现。卡住了就翻 docs/动手学OpenCV_自学手册.md 对应那一课（含完整源码与逐段讲解）。
+    (void)argc;
+    (void)argv;
     return 0;
 }
-

@@ -21,7 +21,7 @@
 #include <opencv2/core.hpp>
 // 相机标定与三维重建
 #include <opencv2/calib3d.hpp>
-#include <opencv2/imgproc.hpp> 
+
 
 #include <iostream>
 #include <vector>

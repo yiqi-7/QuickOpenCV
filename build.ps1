@@ -27,7 +27,11 @@ param(
     [switch]$Run,
     [switch]$Reconfigure,
     [switch]$SkipConfigure,
-    [switch]$List
+    [switch]$List,
+
+    # Everything after the target name is forwarded to the program being run.
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$ProgramArgs = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -121,7 +125,12 @@ if ($Run) {
         $OutputEncoding = $utf8ConsoleEncoding
         Push-Location $Root  # programs write to output/ relative to the working dir
         try {
-            & $exe
+            if ($ProgramArgs.Count -gt 0) {
+                Write-Host "[args] $($ProgramArgs -join ' ')" -ForegroundColor DarkGray
+                & $exe @ProgramArgs
+            } else {
+                & $exe
+            }
             $runCode = $LASTEXITCODE
         } finally {
             Pop-Location
